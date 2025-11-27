@@ -1,4 +1,4 @@
-# Add data folder
+# Ignore data folder and large files
 data/
 
 # History files
