@@ -9,11 +9,13 @@ execute:
   warning: false
 ---
 
+## Purpose
+
+The purpose of this repository was to create a function that shows you which Exclusive Economic Zones (EEZs) along the U.S. West Coast have the most potential for developing marine aquaculture for a specific marine species with map. The only arguments needed for this function are minimum and maximum sea surface temperature, minimum and maximum depth, and the name of the species of interest.
+
 ## Prepare data
 
-To start, we need to load all necessary data and make sure it has the coordinate reference system.
-
-shapefile for the West Coast EEZ bathymetry raster SST rasters combine SST rasters into a raster stack
+To start all the necessary libraries for this project were loaded in. The `suppressPackageStartupMessages()` function was used to suppress the long messages outputted by each library. All necessary data was then loaded in their coordinate reference system were matched to the CRS of economic_zones (WGS 84 (EPSG:4326)).
 
 ```{r}
 # Load in libraries
@@ -70,13 +72,7 @@ if (all(sapply(all_crs, crs) == crs(economic_zones))) {
 
 ## Process data
 
-Next, we need to process the SST and depth data so that they can be combined. In this case the SST and depth data have slightly different resolutions, extents, and positions.
-
-find the mean SST from 2008-2012 (e.g. create single raster of average SST) convert average SST from Kelvin to Celsius hint: subtract by 273.15 crop depth raster to match the extent of the SST raster note: the resolutions of the SST and depth data do not match resample the depth data to match the resolution of the SST data using the nearest neighbor approach check that the depth and SST match in resolution, extent, and coordinate reference system hint: can the rasters be stacked?
-
-### find the mean SST from 2008-2012 (e.g. create single raster of average SST)
-
-### convert average SST from Kelvin to Celsius hint: subtract by 273.15
+The SST and depth data then had to be processed so it can be combined. To do so the data's differences in resolution, extent, and position had to be resolved. First, a single raster of mean ocean temperature(°K) from 2008-2012 was created and was then converted to Celsius. The `crop()` function was on ocean_depth to match the extent of mean_sst_c. The difference in resolution was then resolved using the nearest neighbor approach with the `resample()` function on ocean_depth_cropped to match the resolution of mean_sst_c. The rasters were then stacked.
 
 ```{r}
 # Stack rasters to find the mean SST from 2008-2012
@@ -88,25 +84,12 @@ mean_sst <- mean(temp_stack)
 # Convert mean_sst from units to Celsius from Kelvin
 mean_sst_c <- mean_sst - 273.15
 
-```
-
-### crop depth raster to match the extent of the SST raster
-
-```{r}
 # Crop ocean_depth raster to match the extent of mean_sst_c
 ocean_depth_cropped <- crop(ocean_depth, mean_sst_c)
-```
 
-###note: the resolutions of the SST and depth data do not match ###resample the depth data to match the resolution of the SST data using the nearest neighbor approach
-
-```{r}
 # Resample ocean_depth_cropped to match the resolution of mean_sst_c
 ocean_depth_resampled <- resample(ocean_depth_cropped, mean_sst_c, method = "near")
-```
 
-###check that the depth and SST match in resolution, extent, and coordinate reference system ###hint: can the rasters be stacked?
-
-```{r}
 # Check that the ocean_depth_resampled and mean_sst_c resolution, extent, and CRS match
 crs(ocean_depth_resampled) == crs(mean_sst_c)
 ext(ocean_depth_resampled) == ext(mean_sst_c)
@@ -118,42 +101,34 @@ depth_sst_stack <- c(ocean_depth_resampled, mean_sst_c)
 
 ## Find suitable locations
 
-To find suitable locations for marine aquaculture, we’ll need to find locations that are suitable in terms of both SST and depth.
+The suitable locations in terms of both SST and depth for marine aquaculture were then located. This was done by reclassifying mean_sst_c and ocean_depth_resampled. The status of the areas was determined by the thresholds below.
 
-reclassify SST and depth data into locations that are suitable for oysters hint: set suitable values to 1 and unsuitable values to 0 find locations that satisfy both SST and depth conditions
+Research has shown that **Oysters** need the following conditions for optimal growth:
 
-Research has shown that oysters need the following conditions for optimal growth:
+-   Sea surface temperature: 11-30°C
 
-sea surface temperature: 11-30°C depth: 0-70 meters below sea level
+-   Depth: 0-70 meters below sea level
 
 ```{r}
-# Reclasify mean_sst_c and ocean_depth_resampled  into locations that are suitable for oysters
+# Reclasify mean_sst_c and ocean_depth_resampled into locations that are suitable for oysters
 
 # Make the suitible range from 11-30°C
 mean_sst_suitable <- classify(mean_sst_c, rbind(c(-Inf, 11, 0),   # below 11°C = 0
-                                           c(11, 30, 1),    # suitable (11-30) = 1
+                                           c(11, 30, 1),    # suitable (11°C-30°C) = 1
                                            c(30, Inf, 0)))  # above 30°C = 0
 
 # Make the suitible range from -70 to 0 meters below sea level
 ocean_depth_suitable <- classify(ocean_depth_resampled, rbind(c(-Inf, -70, 0),   # below -70m = 0
-                                                       c(-70, 0, 1),      # suitable (-70-0) = 1
-                                                       c(0, Inf, 0)))     # above 0 = 0
-
-
+                                                       c(-70, 0, 1),      # suitable (-70m-0m) = 1
+                                                       c(0, Inf, 0)))     # above 0m = 0
 ```
 
-## Determine the most suitable EEZ
+## Determine the most suitable Exclusive Economic Zones(EEZ)
 
-We want to determine the total suitable area within each EEZ in order to rank zones by priority. To do so, we need to find the total area of suitable locations within each EEZ.
+The total suitable area within each EEZ was then determined in order to rank zones by priority. This was done by multiplying the two layers together to find the suitable cells in both layers and making a out of economic_zones to only keep the areas inside the economic_zones polygon. The area of grid cells in km was then found. cell_areas and economic_zones_mask were them multiplied together to get the suitable cells area. To get total potential aquaculture area per EEZ the suitable area inside each EEZ polygon was added up using the `zonal()` function.
 
-select suitable cells within West Coast EEZs
-find area of grid cells
-find the total suitable area within each EEZ
-hint: it might be helpful to rasterize the EEZ data
-
-#### select suitable cells within West Coast EEZs
 ```{r}
-# Find sutible cells in both layers
+# Find suitable cells in both layers
 suitable_cells <- mean_sst_suitable * ocean_depth_suitable
 
 # Only keep areas inside the economic_zones polygon 
@@ -166,10 +141,13 @@ cell_areas <- cellSize(economic_zones_mask, unit = "km")
 suitable_area <- economic_zones_mask * cell_areas
 
 # # Add up the suitable area inside each EEZ polygon 
-# to get total potential aquaculture area per zone
 potential_aquaculture_area <- zonal(suitable_area, vect(economic_zones), fun = "sum", na.rm = TRUE)
 
 ```
+
+## Data Visuilization
+
+To create a map the potential_aquaculture_area data was added to economic_zones data. A map of EEZ regions colored by amount of suitable area for farming oysters was then created. A kable was then made to display the potential marine aquaculture area(km²) for each EEZ.
 
 ```{r}
 # Add the potential_aquaculture_area data to economic_zones to plot it
@@ -183,12 +161,13 @@ tm_shape(economic_zones) +
     fill.legend = tm_legend(title = "Suitable Area (km²)")
   ) +
   tm_text("rgn", size = 0.42, col = "black") +  # add region names
-  tm_title("suitable Area for Farming Oysters in the West Coast") +
+  tm_title("Suitable Area for Farming Oysters in the West Coast") +
   tm_basemap("OpenStreetMap") +  # add basemap
   tm_scalebar(position = c(0.01, 0.06)) +
   tm_compass(position = c(0.01, 0.2)) +
   tm_layout(legend.outside = TRUE)
 ```
+
 ```{r}
 # Display the potential_aquaculture_area in each EEZ as a kable
 economic_zones %>%
@@ -209,9 +188,12 @@ economic_zones %>%
 
 ```
 
+## Creating a funcion
 
+The workflow above for oysters was used to create a function called `suitable_eez()` that shows you which Exclusive Economic Zones (EEZs) along the U.S. West Coast have the most potential for developing marine aquaculture for a specific marine species with map. There are 5 arguments to this function: min_depth, max_depth, min_sst, max_sst, and species_name.
 
 ```{r}
+# Create a function that shows each EEZ's potential for developing marine aquaculture for a given species
 suitable_eez <- function(min_depth, max_depth, min_sst, max_sst, species_name) {
   library(terra)
   library(sf)  
@@ -308,18 +290,21 @@ return(eez_plot)
 }
 ```
 
+## Testing the function
 
-Red abalone
-Research has shown that oysters need the following conditions for optimal growth:
+The code below is a demonstration of how the function works:
 
-sea surface temperature: 8°C - 18°C
-depth: 0 - 24 m meters below sea level
+<https://www.sealifebase.ca/search.php> This is a good website to use to find information on species depth and temperature requirements.
+
+#### Red abalone
+
+Research has shown that **Red abalone** need need the following conditions for optimal growth:
+
+-   Sea surface temperature: 8°C - 18°C
+
+-   Depth: 0 - 24 m meters below sea level
+
 ```{r}
+# Use suitable_eez() on Red abalone
 suitable_eez(min_depth = -24, max_depth = 0, min_sst = 8, max_sst = 18, species_name = "Red abalone")
 ```
-
-
-
-
-
-

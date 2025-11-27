@@ -4,7 +4,7 @@
 
 #### Purpose
 
-The purpose of this repository is to create a function that shows you which Exclusive Economic Zones (EEZs) along the U.S. West Coast have the most potential for developing marine aquaculture with a map. The only arguments needed for this function are minimum and maximum sea surface temperature, minimum and maximum depth, and the name of the species of interest.
+The purpose of this repository was to create a function that shows you which Exclusive Economic Zones (EEZs) along the U.S. West Coast have the most potential for developing marine aquaculture with a map. The only arguments needed for this function are minimum and maximum sea surface temperature, minimum and maximum depth, and the name of the species of interest.
 
 #### Contents
 
