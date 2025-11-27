@@ -1,8 +1,6 @@
 # Marine Aquaculture Suitability Mapping
 
-::: {style="text-align: center;"}
 <img src="https://www.marinemammalcenter.org/storage/app/uploads/public/ec8/271/d6d/thumb__2400_0_0_0_auto.jpg"/>
-:::
 
 #### Purpose
 
