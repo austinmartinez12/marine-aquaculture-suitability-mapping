@@ -1,8 +1,12 @@
 ---
-title: "Agricultural analysis"
+title: "Aquaculture Analysis"
 author: "Austin Martinez"
+date: 11/26/2025
 format: html
 editor: visual
+execute:
+  message: false
+  warning: false
 ---
 
 ## Prepare data
@@ -13,12 +17,12 @@ shapefile for the West Coast EEZ bathymetry raster SST rasters combine SST raste
 
 ```{r}
 # Load in libraries
-library(terra)     # raster/vector operations
-library(sf)        # vector manipulation
-library(tmap)      # mapping
-library(dplyr)     # data manipulation
-library(knitr)
-library(kableExtra)
+suppressPackageStartupMessages({ 
+  library(terra) 
+  library(sf) 
+  library(tmap) 
+  library(dplyr) 
+  library(kableExtra)})
 ```
 
 ```{r}
@@ -33,6 +37,8 @@ temp_2012 <- rast(here::here("data", "average_annual_sst_2012.tif"))
 ```
 
 ```{r}
+#| message: true
+#| warning: true
 # Put all data into a list to check CRS
 all_crs <- list(temp_2008, temp_2009, temp_2010, temp_2011, temp_2012, ocean_depth, economic_zones)
 
@@ -50,6 +56,9 @@ temp_2009 <- project(temp_2009, economic_zones)
 temp_2010 <- project(temp_2010, economic_zones)
 temp_2011 <- project(temp_2011, economic_zones)
 temp_2012 <- project(temp_2012, economic_zones)
+
+# Put all data into a list to check CRS
+all_crs <- list(temp_2008, temp_2009, temp_2010, temp_2011, temp_2012, ocean_depth, economic_zones)
 
 # Check if CRSs match
 if (all(sapply(all_crs, crs) == crs(economic_zones))) {
@@ -170,34 +179,44 @@ economic_zones$potential_aquaculture_area <- potential_aquaculture_area$mean
 tm_shape(economic_zones) +
   tm_polygons(
     fill = "potential_aquaculture_area",
-    fill.scale = tm_scale(values = "Purples"),
+    fill.scale = tm_scale(values = "brewer.purples"),
     fill.legend = tm_legend(title = "Suitable Area (km²)")
   ) +
   tm_text("rgn", size = 0.42, col = "black") +  # add region names
   tm_title("suitable Area for Farming Oysters in the West Coast") +
   tm_basemap("OpenStreetMap") +  # add basemap
-  tm_scale_bar(position = c(0.01, 0.06)) +
+  tm_scalebar(position = c(0.01, 0.06)) +
   tm_compass(position = c(0.01, 0.2)) +
   tm_layout(legend.outside = TRUE)
 ```
 ```{r}
-# Display with kableExtra
+# Display the potential_aquaculture_area in each EEZ as a kable
 economic_zones %>%
   select(rgn, potential_aquaculture_area) %>%
+  st_drop_geometry() %>%   # remove geometry column
+  rename(
+    Region = rgn,
+    `Potential Aquaculture Area` = potential_aquaculture_area
+  ) %>%
   kable(
     caption = "Potential Marine Aquaculture Area by EEZ (km²)",
     digits = 2
   ) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE
+  )
+
 ```
 
 
 
 ```{r}
 suitable_eez <- function(min_depth, max_depth, min_sst, max_sst, species_name) {
-  library(terra)     # raster/vector operations
-  library(sf)        # vector manipulation
-  library(tmap)      # mapping
+  library(terra)
+  library(sf)  
+  library(tmap) 
+  library(dplyr) 
   library(kableExtra)
   
   # Read in data
@@ -274,13 +293,13 @@ economic_zones$potential_aquaculture_area <- potential_aquaculture_area$mean
 eez_plot <- tm_shape(economic_zones) +
   tm_polygons(
     fill = "potential_aquaculture_area",
-    fill.scale = tm_scale(values = "Purples"),
+    fill.scale = tm_scale(values = "brewer.purples"),
     fill.legend = tm_legend(title = "Suitable Area (km²)")
   ) +
   tm_text("rgn", size = 0.42, col = "black") +  # add region names
   tm_title(paste("Suitable Area for Farming", species_name, "in the West Coast")) +
   tm_basemap("OpenStreetMap") +  # add basemap
-  tm_scale_bar(position = c(0.01, 0.06)) +
+  tm_scalebar(position = c(0.01, 0.06)) +
   tm_compass(position = c(0.01, 0.2)) +
   tm_layout(legend.outside = TRUE)
 
@@ -290,10 +309,6 @@ return(eez_plot)
 ```
 
 
-```{r}
-suitable_eez(min_depth = -70, max_depth = 0, min_sst = 11, max_sst = 30, species_name = "Oysters")
-```
-
 Red abalone
 Research has shown that oysters need the following conditions for optimal growth:
 
@@ -302,14 +317,7 @@ depth: 0 - 24 m meters below sea level
 ```{r}
 suitable_eez(min_depth = -24, max_depth = 0, min_sst = 8, max_sst = 18, species_name = "Red abalone")
 ```
-Red abalone
-Research has shown that oysters need the following conditions for optimal growth:
 
-sea surface temperature: 4.4°C - 16.1°C
-depth: 0 - 60 m meters below sea level
-```{r}
-suitable_eez(min_depth = -60, max_depth = 0, min_sst = 4.4, max_sst = 16.1, species_name = "Blue mussel")
-```
 
 
 
