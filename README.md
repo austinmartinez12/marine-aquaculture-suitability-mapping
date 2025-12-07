@@ -57,3 +57,5 @@ The data was used was sourced from the following locations:
 -   Flanders Marine Institute (VLIZ). (2025). Maritime Boundaries: Exclusive Economic Zones (EEZ) Data set. MarineRegions.org. <https://www.marineregions.org> (Accessed November 26, 2025)
 
 -   Palomares, M. L. D., & Pauly, D. (Eds.). (2025). SeaLifeBase (Version 04/2025) Database. SeaLifeBase. <http://www.sealifebase.org>
+
+-   Global Seafood Alliance. (2019, March 27). What is aquaculture and why do we need it? Global Seafood Alliance. <https://www.globalseafood.org/what-is-aquaculture-and-why-do-we-need-it>
