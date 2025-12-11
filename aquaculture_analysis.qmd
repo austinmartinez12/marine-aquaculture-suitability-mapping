@@ -9,54 +9,6 @@ execute:
   warning: false
 ---
 
-## Problem Statement
-
-This project aims to answer the question: Which Exclusive Economic Zones (EEZs) are best suited for farming a specific marine organism?
-
-## Background on the issue
-
-Unfortunately, the days of the ocean’s natural productivity providing for the planet is over. Wild fish have been exploited for generations. Given that over fishing of our oceans and other natural resources is continuously increasing year over year, humans need alternate sources for seafood to feed the planet’s ever-growing population. This planets human is projected to be 10 billion by 2050, which will increase the demand for animal by 52 percent(Global Seafood Alliance, 2019). To fulfill this ever growing need for seafood we need to increase the amount of aquaculture farms.
-
-## Analysis
-
-The analysis for this project is done as follows:
-
--   Ocean depth, EEZ boundaries, and SST data from 2008–2012 are loaded in
-
--   They are then projected to the same CRS
-
--   Mean SST is calculated and converted from Kelvin to Celsius
-
--   Using the organisms preferred SST and depth areas are classified into suitable and unsuitable ranges
-
--   Cells with in the EEZ polygons meeting both the organisms SST and depth requirements are selected
-
--   The amount of suitable area is then totaled for each EEZ
-
--   The results are plotted on a map
-
-## Results
-
-#### Potential aquaculture area for Oysters
-
-After running the analysis it was determined that the EEZ with the most potential aquaculture area is the Central Coast and the EEZ with the least amount of potential aquaculture area for oysters is Northern California. Oysters are not well suited for this areas' ocean depth and sea surface temperature.
-
-#### Potential aquaculture area for Red abalone
-
-After running the analysis it was determined that the EEZ with the most potential aquaculture area is Washington and the area with the least amount of potential aquaculture area for Red abalone is Northern California. Red abalone are not well suited for this areas' ocean depth and sea surface temperature.
-
-## Discussion of Conclusions
-
-There are a few potential caveats to this analysis. The SST data only includes meaurments from 2008–2012. The SST has likely changed a bit due to climate change. This analysis only uses sea surface temperature, so it will have trouble finding suitable area for deep sea organism. There are also more variables that should be added to more accurately estimate potential aquaculture area for a given species. In the future more variables should be added and more reacent SST data should be complied
-
-## Data sources
-
--   Species info: The data for a species preferred ocean depth and sea surface temperature can be found on SeaLifeBase.
--   Sea Surface Temperature: The data for sea surface temperature was sourced from NOAA’s 5km Daily Global Satellite Sea Surface Temperature Anomaly v3.1. It provided the average annual sea surface temperature (SST) from the years 2008 to 2012 to characterize the average sea surface temperature within the region.
--   Bathymetry: This data was sourced from the General Bathymetric Chart of the Oceans (GEBCO). This data was used to characterize the depth of the ocean.
--   Exclusive Economic Zones: This data was sourced from Marineregions.org. It was used to design maritime boundaries using Exclusive Economic Zones off of the west coast of US.
--   Global Seafood Alliance: This blog post was used to justify why it is important to find more suitable area for aquaculture.
-
 ## Purpose
 
 The purpose of this repository was to create a function that shows you which Exclusive Economic Zones (EEZs) along the U.S. West Coast have the most potential for developing marine aquaculture for a specific marine species with map. The only arguments needed for this function are minimum and maximum sea surface temperature, minimum and maximum depth, and the name of the species of interest.
@@ -235,11 +187,6 @@ economic_zones %>%
   )
 
 ```
-
-## Written Reflection
-
-The table and map above display the potential aquaculture area in each EEZ for oysters on the west coast. The EEZ with the most potential aquaculture area is the Central Coast. This EEZ has 4,069.57km² of potential aquaculture area. The area with the least amount of potential aquaculture area for oysters is Northern California. This EEZ only has 4,069.57km² of potential aquaculture area for oysters. Oysters are not well suited for this areas' ocean depth and sea surface temperature.
-
 ## Creating a function
 
 The workflow above for oysters was used to create a function called `suitable_eez()` that shows you which Exclusive Economic Zones (EEZs) along the U.S. West Coast have the most potential for developing marine aquaculture for a specific marine species with map. There are 5 arguments to this function: min_depth, max_depth, min_sst, max_sst, and species_name.
@@ -361,6 +308,12 @@ Research has shown that **Red abalone** need need the following conditions for o
 suitable_eez(min_depth = -24, max_depth = 0, min_sst = 8, max_sst = 18, species_name = "Red abalone")
 ```
 
+
 ## Written Reflection
 
-The map above displays the potential aquaculture area in each EEZ for Red abalone on the west coast. The EEZ with the most potential aquaculture area is Washington. The area with the least amount of potential aquaculture area for Red abalone is Northern California. Red abalone are not well suited for this areas' ocean depth and sea surface temperature.
+After running the analysis for oysters it was found that the EEZ with the most potential aquaculture area was the Central Coast. This EEZ had 4,069.57km² of potential aquaculture area. The area with the least amount of potential aquaculture area for oysters was Northern California. This EEZ only had 178.02km² of potential aquaculture area for oysters. Oysters are not well suited for this areas' ocean depth and sea surface temperature. 
+
+When the `suitable_eez()` function was used on Red abalone it was found that the EEZ with the most potential aquaculture area was Washington and the area with the least amount of potential aquaculture area for Red abalone was Northern California. Red abalone are not well suited for this areas' ocean depth and sea surface temperature.
+
+There are a few potential caveats to this analysis. The SST data only includes measurements from 2008–2012. The SST has likely changed a bit due to climate change. This analysis only uses sea surface temperature, so it will have trouble finding suitable area for deep sea organisms. There are also more variables that should be added to more accurately estimate potential aquaculture area for a given species. In the future more variables should be added and more recent SST data should be complied to produce more accurate resuls.
+
